@@ -1,15 +1,15 @@
-# Deploying Kubernetes on CoreOS with Fleet and Rudder
+# Deploying Kubernetes on CoreOS with Fleet and Flannel
 
-The goal of this tutorial is to build an elastic Kubernetes cluster on top of CoreOS using [Fleet](https://github.com/coreos/fleet) and [Rudder](https://github.com/coreos/rudder).
+The goal of this tutorial is to build an elastic Kubernetes cluster on top of CoreOS using [Fleet](https://github.com/coreos/fleet) and [flannel](https://github.com/coreos/flannel).
 
 The target audience for this tutorial understands how Kubernetes works at a basic level and has experience installing CoreOS and using [cloud-config](https://coreos.com/docs/cluster-management/setup/cloudinit-cloud-config).
 
 ## Overview
 
-First we'll setup a dedicated etcd cluster, which will be used to bootstrap the other components. Then we'll build a CoreOS cluster where each machine will have Rudder, Fleet, and Docker configured during boot via cloud-config. Next we'll deploy Kubernetes using Fleet and a collection of systemd unit files. Finally we'll wrap things up by deploying [kube-register](https://github.com/kelseyhightower/kube-register), which will auto register Kubernetes' Kubelets with the Kubernetes API server.
+First we'll setup a dedicated etcd cluster, which will be used to bootstrap the other components. Then we'll build a CoreOS cluster where each machine will have flannel, Fleet, and Docker configured during boot via cloud-config. Next we'll deploy Kubernetes using Fleet and a collection of systemd unit files. Finally we'll wrap things up by deploying [kube-register](https://github.com/kelseyhightower/kube-register), which will auto register Kubernetes' Kubelets with the Kubernetes API server.
 
 * [Setup a dedicated etcd cluster](#setup-a-dedicated-etcd-cluster)
-* [Configure Rudder](#configure-rudder)
+* [Configure flannel](#configure-flannel)
 * [Add machines to the cluster](#add-machines-to-the-cluster)
 * [Deploy Kubernetes using Fleet](#deploying-kubernetes-with-fleet)
 * [Auto Registering Kubernetes Kubelets with kube-register](#auto-registering-kubernetes-kubelets-with-kube-register)
@@ -19,7 +19,7 @@ First we'll setup a dedicated etcd cluster, which will be used to bootstrap the 
 
 * [CoreOS](https://coreos.com) (v440.0.0+)
 * [etcd](https://github.com/coreos/etcd)
-* [Rudder](https://github.com/coreos/rudder)
+* [flannel](https://github.com/coreos/flannel)
 * [Fleet](https://github.com/coreos/fleet) (v0.8.0+)
 * [Kubernetes](https://github.com/GoogleCloudPlatform/kubernetes)
 * [kube-register](https://github.com/kelseyhightower/kube-register)
@@ -63,9 +63,9 @@ MACHINE     IP              METADATA
 9c1aa398... 192.168.12.10   role=etcd
 ```
 
-## Configure Rudder
+## Configure flannel
 
-Rudder is used to setup and manage an overlay network, which will allow containers on different Kubernetes hosts to communicate. Rudder reads it's runtime configuration from etcd, and requires a network block to be allocated for use by Kubernetes. Add the Rudder configuration using etcdctl:
+flannel is used to setup and manage an overlay network, which will allow containers on different Kubernetes hosts to communicate. flannel reads it's runtime configuration from etcd, and requires a network block to be allocated for use by Kubernetes. Add the flannel configuration using etcdctl:
 
 ```
 $ etcdctl mk /coreos.com/network/config '{"Network":"10.0.0.0/16"}'

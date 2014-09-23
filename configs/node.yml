@@ -9,32 +9,32 @@ coreos:
       mask: true
     - name: fleet.service
       command: start
-    - name: rudder.service
+    - name: flannel.service
       command: start
       content: |
         [Unit]
         After=network-online.target 
         Wants=network-online.target
-        Description=Rudder is an etcd backed overlay network for containers
+        Description=flannel is an etcd backed overlay network for containers
 
         [Service]
         ExecStartPre=-/usr/bin/mkdir -p /opt/bin
-        ExecStartPre=/usr/bin/wget -N -P /opt/bin https://storage.googleapis.com/rudder/rudder
-        ExecStartPre=/usr/bin/chmod +x /opt/bin/rudder
-        ExecStart=/opt/bin/rudder -etcd-endpoint http://192.168.12.10:4001
+        ExecStartPre=/usr/bin/wget -N -P /opt/bin http://storage.googleapis.com/flannel/flanneld
+        ExecStartPre=/usr/bin/chmod +x /opt/bin/flanneld
+        ExecStart=/opt/bin/flanneld -etcd-endpoint http://192.168.12.10:4001
     - name: docker.service
       command: start
       content: |
         [Unit]
-        After=rudder.service
-        Wants=rudder.service
+        After=flannel.service
+        Wants=flannel.service
         Description=Docker Application Container Engine
         Documentation=http://docs.docker.io
 
         [Service]
-        EnvironmentFile=/run/rudder/subnet.env
+        EnvironmentFile=/run/flannel/subnet.env
         ExecStartPre=/bin/mount --make-rprivate /
-        ExecStart=/usr/bin/docker -d --bip=${RUDDER_SUBNET} --mtu=${RUDDER_MTU} -s=btrfs -H fd:// --iptables=false
+        ExecStart=/usr/bin/docker -d --bip=${FLANNEL_SUBNET} --mtu=${FLANNEL_MTU} -s=btrfs -H fd://
 
         [Install]
         WantedBy=multi-user.target
